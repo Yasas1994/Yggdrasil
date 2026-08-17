@@ -1,0 +1,25 @@
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - r-base=4.3
+  - r-stringr
+  - r-magrittr
+  - r-dplyr
+  - r-tibble
+  - r-purrr
+  - r-tidyr
+  - r-ggplot2
+  - r-readr
+  - r-data.table
+  - r-seqinr
+  - r-reshape2
+  - r-pheatmap
+  - r-fastcluster
+  - r-paralleldist
+  - r-furrr
+  - r-future
+  - bioconductor-iranges
+  - bioconductor-complexheatmap
+  - blast>=2.14

@@ -1,0 +1,103 @@
+# Yggdrasil master Snakefile.
+# Bundled inside the `yggdrasil` package; invoked via `yggdrasil run`.
+# Included rule files share this namespace, so helpers below are visible everywhere.
+
+from pathlib import Path
+import pandas as pd
+
+WF_DIR = Path(workflow.snakefile).resolve().parent
+OUT = config["outdir"]
+
+
+def env(name: str) -> str:
+    """Absolute path to a bundled conda env yaml."""
+    return str(WF_DIR / "envs" / f"{name}.yaml")
+
+
+def scr(name: str) -> str:
+    """Absolute path to a bundled helper script."""
+    return str(WF_DIR / "scripts" / name)
+
+
+def load_samples():
+    return pd.read_csv(config["samples"], sep="\t", dtype=str).set_index("sample", drop=False)
+
+
+SAMPLES = load_samples()
+
+
+def sample_list():
+    return SAMPLES.index.tolist()
+
+
+def genome_of(s):
+    return SAMPLES.loc[s, "genome"]
+
+
+def reads_of(s, mate):
+    v = SAMPLES.loc[s, f"r{mate}"]
+    return v if isinstance(v, str) and v and v.lower() != "nan" else None
+
+
+def samples_with_reads():
+    return [s for s in sample_list() if reads_of(s, 1) and reads_of(s, 2)]
+
+
+def flag(section, key="enabled"):
+    return bool(config.get(section, {}).get(key, False))
+
+
+# ----------------------------- targets -----------------------------
+TARGETS = [
+    f"{OUT}/07_matrices/votu_sample_presence_absence.tsv",
+    f"{OUT}/07_matrices/gene_sample_counts.tsv",
+    f"{OUT}/08_ecology/alpha.tsv",
+    f"{OUT}/08_ecology/beta.tsv",
+    f"{OUT}/09_report/votu_master.tsv",
+]
+if flag("abundance"):
+    TARGETS.append(f"{OUT}/06_abundance/coverm.tsv")
+if config.get("ecology", {}).get("group_col"):
+    TARGETS.append(f"{OUT}/08_ecology/differential.tsv")
+if flag("report"):
+    TARGETS.append(f"{OUT}/09_report/phage_report.html")
+if flag("phylo"):
+    TARGETS.append(f"{OUT}/opt_phylo/terl.treefile")
+if flag("amg"):
+    TARGETS.append(f"{OUT}/opt_amg/amg_summary.tsv")
+if flag("host"):
+    TARGETS.append(f"{OUT}/opt_host/iphop.tsv")
+if flag("virclust"):
+    TARGETS.append(f"{OUT}/opt_virclust/tree.newick")
+if flag("viridic"):
+    TARGETS.append(f"{OUT}/opt_viridic/clusters.csv")
+
+
+rule all:
+    input:
+        TARGETS,
+
+
+include: "rules/preprocess.smk"
+include: "rules/qc.smk"
+include: "rules/cluster.smk"
+include: "rules/annotate.smk"
+include: "rules/taxonomy.smk"
+include: "rules/lifestyle.smk"
+include: "rules/abundance.smk"
+include: "rules/matrices.smk"
+include: "rules/ecology.smk"
+include: "rules/report.smk"
+include: "rules/optional/phylo.smk"
+include: "rules/optional/amg.smk"
+include: "rules/optional/host.smk"
+include: "rules/optional/viridic.smk"
+include: "rules/optional/virclust.smk"
+
+
+rule setup_databases:
+    """One-time download of tool databases. Run via `yggdrasil setup-databases`."""
+    output:
+        touch(f"{config['databases']['dir']}/.databases_ready"),
+    shell:
+        "bash {scr('setup_databases.sh')} {config[databases][dir]}"

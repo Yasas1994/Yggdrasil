@@ -1,0 +1,6 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - iqtree>=2.2.2   # IQ-TREE 2.x provides the `iqtree2` binary

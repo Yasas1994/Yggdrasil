@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+
+# Yggdrasil run artifacts
+results/
+databases/
+.snakemake/
+*.log
+run*/
+
+# Input / analysis data (kept local, not uploaded)
+phage_genomes/
+notebooks/*.tsv
+notebooks/*.csv
+notebooks/maaslin3_output*/
+notebooks/prokbert_inference_output/
+
+# Docs build
+docs/_build/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

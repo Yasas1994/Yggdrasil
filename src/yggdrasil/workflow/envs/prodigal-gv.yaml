@@ -1,0 +1,7 @@
+# prodigal-gv: gene calling tuned for phage/viral metagenomes.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - prodigal-gv>=2.8

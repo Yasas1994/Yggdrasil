@@ -1,0 +1,12 @@
+# BACPHLIP phage lifestyle (temperate/virulent) predictor.
+# bacphlip 0.9.6 pins scikit-learn==0.23.1 (python <=3.8); HMMER3 provides hmmsearch.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.8
+  - bacphlip=0.9.6
+  - hmmer
+  - pandas
+  - numpy<1.20

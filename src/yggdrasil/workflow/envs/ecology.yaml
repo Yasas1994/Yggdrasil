@@ -1,0 +1,10 @@
+# R ecology: alpha/beta diversity + ordination. ANCOM-BC (Bioconductor) is
+# optional and intentionally NOT pinned here; ecology.R falls back to base-R
+# tests when it is absent. Add `bioconductor-ancombc` to enable it.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base>=4.2
+  - r-vegan

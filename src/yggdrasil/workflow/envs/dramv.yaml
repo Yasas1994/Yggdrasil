@@ -1,0 +1,11 @@
+# DRAM / DRAM-v (WrightonLabCSU/DRAM). The bioconda `dram` package ships both
+# DRAM.py and DRAM-v.py. Heavy database: prepare once via `yggdrasil setup-databases`,
+# which runs `DRAM-setup.py prepare_databases --output_dir <databases.dir>/dram` so
+# DRAM-v finds KOfam/Pfam/etc. at runtime. The amg rule points at <databases.dir>/dram.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.9
+  - dram>=1.4.0

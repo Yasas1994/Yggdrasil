@@ -1,0 +1,12 @@
+# iPHoP (simroux/iphop) integrated phage host prediction. Distributed via bioconda
+# (NOT PyPI). The conda package pulls prodigal/hmmer/blast/mash/mmseqs as run deps.
+# DB via `iphop download --db_dir <databases.dir>/iphop --no_prompt` (full DB ~300 GB); it unpacks
+# into a versioned subdir (iPHoP_db_<ver>_rw/) that the host rule auto-resolves.
+# A ~9 GB test DB (-dbv iPHoP_db_rw_1.4_for-test) validates the wiring without the full download.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.8
+  - iphop>=1.3

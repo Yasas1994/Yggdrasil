@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.9
+  - vcontact3>=3.0
+  - pandas<3        # vcontact3 3.1.x assigns str into a float col; pandas 3 raises (see profiles.py shares_clusters)

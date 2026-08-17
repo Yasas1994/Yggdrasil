@@ -1,0 +1,13 @@
+# CoverM + all mapper backends selectable via config abundance.mapper.
+# Pins follow wwood/CoverM 0.7.x; adjust versions if your solver prefers otherwise.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - coverm>=0.7
+  - minimap2          # mapper: minimap2-sr (default)
+  - bwa               # mapper: bwa-mem
+  - bwa-mem2          # mapper: bwa-mem2
+  - strobealign       # mapper: strobealign
+  - samtools          # CoverM emits/sorts BAM via samtools

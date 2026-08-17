@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yggdrasil"
+version = "0.1.0"
+description = "Reproducible Snakemake pipeline for downstream analysis of metagenomic phage genomes"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Yggdrasil contributors" }]
+keywords = ["phage", "virome", "snakemake", "metagenomics", "bioinformatics"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+  "snakemake>=8",
+  "pandas>=2",
+  "pyyaml>=6",
+  "biopython>=1.81",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+yggdrasil = "yggdrasil.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/yggdrasil"]
+
+# Ship the bundled Snakemake workflow (rules, envs, scripts, config) inside the wheel.
+[tool.hatch.build.targets.wheel.force-include]
+"src/yggdrasil/workflow" = "yggdrasil/workflow"

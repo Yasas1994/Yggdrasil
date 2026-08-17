@@ -1,0 +1,14 @@
+# phold (Bouras et al. 2026, NAR) - structure-informed phage annotation on top of
+# Pharokka. Uses ProstT5 (protein language model) + Foldseek against a ~1.36M phage
+# protein structure DB (~16 GB). GPU build of pytorch for ProstT5/Foldseek acceleration;
+# the rule passes --foldseek_gpu (pipeline runs with --apptainer-args=--nv). For a CPU-only
+# host, drop the `pytorch=*=*cuda*` pin and set amg.gpu: false in the config.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.10
+  - phold>=1.0
+  - pytorch=*=*cuda*
+  - pandas

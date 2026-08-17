@@ -1,0 +1,16 @@
+# Report builder environment.
+# Quarto >=1.4 must be installed on the host (see https://quarto.org/docs/get-started/).
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.10
+  - pandas>=2
+  - matplotlib
+  - networkx
+  - scipy
+  - markdown
+  - pip
+  - pip:
+    - git+https://github.com/Yasas1994/bioinformatics-report-builder.git
