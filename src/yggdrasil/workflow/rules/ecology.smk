@@ -1,12 +1,20 @@
-# Ecological summaries from the vOTU x sample ABUNDANCE matrix (CoverM mean
-# coverage). Counts are not meaningful here; diversity/ordination are computed
-# on abundance. differential.tsv is produced by a separate rule that the master
-# Snakefile only requests when ecology.group_col is set, so a null group_col
-# never triggers it.
+# Ecological summaries from a vOTU x sample matrix: CoverM TPM when the
+# abundance module is enabled AND at least one sample has reads; otherwise the
+# vOTU x sample presence/absence matrix (diversity on 0/1 is standard; no
+# CoverM jobs run). Counts are not meaningful here; diversity/ordination are
+# computed on abundance (or presence/absence). differential.tsv is produced by
+# a separate rule that the master Snakefile only requests when
+# ecology.group_col is set, so a null group_col never triggers it.
+
+_ECO_MATRIX = (
+    f"{OUT}/06_abundance/coverm.tsv"
+    if flag("abundance") and samples_with_reads()
+    else f"{OUT}/07_matrices/votu_sample_presence_absence.tsv"
+)
 
 rule ecology:
     input:
-        abundance=f"{OUT}/06_abundance/coverm.tsv",
+        abundance=_ECO_MATRIX,
         samples=config["samples"],
     output:
         alpha=f"{OUT}/08_ecology/alpha.tsv",
@@ -28,7 +36,7 @@ rule ecology:
 
 rule ecology_differential:
     input:
-        abundance=f"{OUT}/06_abundance/coverm.tsv",
+        abundance=_ECO_MATRIX,
         samples=config["samples"],
     output:
         f"{OUT}/08_ecology/differential.tsv",

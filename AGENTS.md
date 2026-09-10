@@ -72,6 +72,9 @@ Docs (Sphinx, MyST markdown) build with `make -C docs html`
 - vOTU representative selection is quality-first (CheckV Complete >
   High-quality > longest), not longest-only.
 - `preprocess.dedup` defaults to `false` — keep it off for ecological counts.
+- Ecology input switches automatically: CoverM TPM when `abundance.enabled` and
+  at least one sample has reads, otherwise the vOTU × sample presence/absence
+  matrix (no CoverM jobs run).
 - PhaStyle runs via Singularity image (`--use-singularity`); phold AMG option
   wants a GPU.
 - `ecology.group_col: null` (default) skips differential abundance; set it to

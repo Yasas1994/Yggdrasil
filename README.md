@@ -50,7 +50,7 @@ Reads are paired to genomes by sample prefix, so `Kenneth004_mobile.fna` pairs w
 | `06_abundance/coverm.tsv` | CoverM abundance (if reads provided) |
 | `07_matrices/votu_sample_counts.tsv` | vOTU × sample counts |
 | `07_matrices/gene_sample_counts.tsv` | gene family × sample counts |
-| `08_ecology/{alpha,beta}.tsv`, `ordination.png` | diversity + ordination |
+| `08_ecology/{alpha,beta}.tsv`, `ordination.png` | diversity + ordination (CoverM TPM with reads; vOTU presence/absence without) |
 | `09_report/votu_master.tsv` | one row per vOTU (everything joined) |
 | `09_report/phage_report.html` | browsable summary |
 
