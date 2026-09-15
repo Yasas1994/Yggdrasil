@@ -47,6 +47,43 @@ def test_discover_handles_no_reads(tmp_path):
     assert rows[0]["sample"] == "S1" and rows[0]["r1"] == ""
 
 
+def test_split_fasta_chunks(tmp_path):
+    fna = tmp_path / "in.fna"
+    write(fna, "".join(f">seq{i}\n{'ACGT' * 25}\n" for i in range(10)))
+    out = tmp_path / "chunks"
+    run("split_fasta.py", "--fasta", str(fna), "--seqs-per-chunk", "4",
+        "--outdir", str(out), "--prefix", "reps")
+    ids = (out / "chunks.txt").read_text().split()
+    assert ids == ["chunk001", "chunk002", "chunk003"]
+    counts = [(out / f"reps_{c}.fna").read_text().count(">") for c in ids]
+    assert counts == [4, 4, 2]
+
+
+def test_split_fasta_empty_input(tmp_path):
+    fna = write(tmp_path / "empty.fna", "")
+    out = tmp_path / "chunks"
+    run("split_fasta.py", "--fasta", str(fna), "--seqs-per-chunk", "4",
+        "--outdir", str(out), "--prefix", "reps")
+    assert (out / "chunks.txt").read_text() == ""
+    assert list(out.glob("reps_*.fna")) == []
+
+
+def test_preprocess_out_per_sample(tmp_path):
+    g = tmp_path / "g"; g.mkdir()
+    write(g / "S1.fna", f">contig1\n{'A' * 6000}\n>short\n{'T' * 100}\n")
+    write(g / "S2.fna", "")  # empty genome -> empty per-sample FASTA
+    samples = tmp_path / "samples.tsv"
+    write(samples, "sample\tgenome\tr1\tr2\n"
+                   f"S1\t{g/'S1.fna'}\t\t\nS2\t{g/'S2.fna'}\t\t\n")
+    ps = tmp_path / "per_sample"
+    run("preprocess.py", "--samples", str(samples), "--min-length", "5000",
+        "--out-fna", str(tmp_path / "all.fna"), "--out-map", str(tmp_path / "c2s.tsv"),
+        "--out-lengths", str(tmp_path / "len.tsv"), "--out-per-sample", str(ps))
+    s1 = (ps / "S1.fna").read_text()
+    assert "S1__contig1" in s1 and "short" not in s1      # renamed + length-filtered
+    assert (ps / "S2.fna").exists() and (ps / "S2.fna").read_text() == ""
+
+
 def test_spine_scripts_end_to_end(tmp_path):
     # --- fixtures: 2 samples, contigs of mixed length + one exact duplicate ---
     g = tmp_path / "g"; g.mkdir()

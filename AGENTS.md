@@ -17,7 +17,8 @@ pip install -e ".[dev]"     # install package (editable) + pytest
 pytest                      # run tests (pure-python smoke tests, no external tools)
 yggdrasil init -g phage_genomes/ -r QC/reads/ -o run1   # scaffold run dir
 yggdrasil setup-databases -w run1 --cores 8             # one-time DB download
-yggdrasil run -w run1 --cores 32 --use-singularity      # full run
+yggdrasil run -w run1 --cores 32 --use-singularity      # full run (local)
+yggdrasil run -w run1 --executor slurm --jobs 200 --partition batch --use-singularity  # SLURM cluster
 yggdrasil run -w run1 --cores 32 -n                     # dry-run: validate the DAG
 yggdrasil config                                          # print default config
 # extra snakemake args after `--`: yggdrasil run -w run1 -- --rerun-incomplete
@@ -33,7 +34,8 @@ Docs (Sphinx, MyST markdown) build with `make -C docs html`
   (`Kenneth004_mobile.fna` ↔ `Kenneth004_R{1,2}.fastq.gz`).
 - `src/yggdrasil/runner.py` — locates the bundled workflow and invokes
   Snakemake; deep-merges bundled default config first, user config second
-  (user wins).
+  (user wins). `--executor slurm` adds `--executor slurm --jobs N
+  --default-resources slurm_partition=<p>`; local mode passes `--cores N`.
 - `src/yggdrasil/workflow/` — the bundled Snakemake workflow (force-included
   into the wheel via pyproject.toml):
   - `Snakefile` — shared helpers (`env()`, `scr()`, `flag()`, sample accessors)
@@ -80,10 +82,35 @@ Docs (Sphinx, MyST markdown) build with `make -C docs html`
 - `ecology.group_col: null` (default) skips differential abundance; set it to
   a `samples.tsv` column to enable ANCOM-BC.
 
+### Parallelization patterns (cluster scale)
+
+- **Per-sample pattern** (qc.smk): preprocess.py `--out-per-sample` writes one
+  renamed, length-filtered FASTA per sample (empty file for empty/missing
+  genomes), so `checkv_sample` has a static parse-time input per sample and
+  `checkv_merge` concatenates into the same output paths the single rule uses.
+  TSV merge = `awk 'NR==1 || FNR>1'` (first header kept), FASTA merge = `cat`.
+- **Chunking pattern** (annotate/lifestyle/host): a `checkpoint split_reps_*`
+  rule runs scripts/split_fasta.py (`--seqs-per-chunk K`, chunk count =
+  ceil(n_seqs/K)) writing `{prefix}_chunkNNN.fna` + `chunks.txt` into a split
+  dir; per-chunk rules consume `reps_{chunk}.fna`; an input function reads
+  `chunks.txt` via `checkpoints.<name>.get().output[0]` so the DAG re-evaluates
+  after the checkpoint. A merge rule then rebuilds the exact output paths the
+  single-run rules produce, so downstream rules are layout-agnostic.
+- Both patterns are config-gated at module level
+  (`if bool(config["qc"].get("per_sample", True)): ... else: ...`,
+  `if int(config[...].get("seqs_per_chunk", 2000)) > 0:`) so exactly one rule
+  defines each output. `0` / `false` selects the original single-run rules.
+- New heavy rules must declare `resources: mem_mb=..., runtime=...` (minutes)
+  so `--executor slurm` submissions request sensible allocations; threads map
+  to cpus via the SLURM executor plugin.
+
 ## Working rules
 
 - Validate workflow changes with `pytest` plus
   `yggdrasil run -w run_smoke -n` (dry-run the DAG) before a real run.
+  Checkpointed rules show as "Defined but x jobs will only be evaluated after
+  checkpoint" in dry-runs — expected; check for WorkflowError and verify the
+  non-checkpointed parts of the DAG.
 - Helper scripts must stay runnable standalone (tests invoke them via
   `subprocess` with CLI args) and tool-free — external tools belong in rules,
   not scripts.

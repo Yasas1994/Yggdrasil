@@ -17,6 +17,9 @@ rule vcontact3:
         len_script=scr("fasta_lengths.py"),
         t2p=scr("tsv2parquet.py"),
     threads: config["taxonomy"]["threads"]
+    resources:
+        mem_mb=32000,
+        runtime=1440,
     conda:
         env("vcontact3")
     shell:

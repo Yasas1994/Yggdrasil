@@ -98,9 +98,19 @@ Common flags:
 |------|-------------|---------|
 | `-w, --workdir` | run directory containing `config.yaml` | `.` |
 | `-c, --config` | path to `config.yaml` | `<workdir>/config.yaml` |
-| `--cores` | max parallel jobs / threads | 1 |
+| `--cores` | max parallel jobs / threads (local executor) | 1 |
+| `--executor` | `local` or `slurm` (dispatch each rule as a SLURM job) | `local` |
+| `--jobs` | slurm mode: max concurrent jobs | 100 |
+| `--partition` | slurm mode: partition for submitted jobs | `batch` |
 | `--use-singularity` | run containerized steps (PhaStyle) | off |
 | `-n, --dry-run` | build the DAG, run nothing | off |
+
+Cluster mode example (per-rule memory/runtime requests come from the rules;
+parallelism scales with sample count and `seqs_per_chunk` settings):
+
+```bash
+yggdrasil run -w run1 --executor slurm --jobs 200 --partition batch --use-singularity
+```
 
 Anything after a bare `--` is forwarded verbatim to Snakemake, e.g.:
 
@@ -187,7 +197,7 @@ yggdrasil init -g GENOMES [-r READS] [-o WORKDIR]
 ### `yggdrasil run`
 
 ```
-yggdrasil run [-w WORKDIR] [-c CONFIG] [--cores N] [--use-singularity] [-n] [-- SNAKEMAKE_ARGS...]
+yggdrasil run [-w WORKDIR] [-c CONFIG] [--cores N] [--executor local|slurm] [--jobs N] [--partition NAME] [--use-singularity] [-n] [-- SNAKEMAKE_ARGS...]
 ```
 
 ---

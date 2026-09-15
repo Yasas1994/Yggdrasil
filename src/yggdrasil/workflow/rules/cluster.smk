@@ -12,6 +12,9 @@ rule vclust:
         ani=lambda wildcards: config["cluster"]["ani"] / 100.0,
         af=config["cluster"]["align_frac"],
     threads: config["cluster"]["threads"]
+    resources:
+        mem_mb=64000,
+        runtime=2880,
     conda:
         env("vclust")
     shell:

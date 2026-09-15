@@ -37,6 +37,21 @@ to `samples.tsv` and set `ecology.group_col` to enable differential abundance.
 Reads are paired to genomes by sample prefix, so `Kenneth004_mobile.fna` pairs with
 `Kenneth004_R{1,2}.fastq.gz`.
 
+### Cluster (SLURM) mode
+
+On a SLURM cluster, dispatch each rule as its own job instead of running
+everything in one local process:
+
+```bash
+yggdrasil run -w run1 --executor slurm --jobs 200 --partition batch --use-singularity
+```
+
+`--jobs` caps concurrent SLURM jobs, `--partition` sets the partition
+(`slurm_partition` default resource). Memory/runtime requests come from the
+rules; parallel width follows the input size (one CheckV job per sample, one
+job per `seqs_per_chunk` chunk of vOTU representatives for Pharokka, PhaStyle,
+BACPHLIP and iPHoP — see `config.yaml`).
+
 ## Outputs (under `<outdir>`, default `results/`)
 
 | Path | Description |

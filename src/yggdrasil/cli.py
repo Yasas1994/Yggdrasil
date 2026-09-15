@@ -77,18 +77,21 @@ def cmd_init(a) -> int:
 
 
 def cmd_run(a) -> int:
-    extra = ["--use-conda", "--cores", str(a.cores)]
+    extra = ["--use-conda"]
     if a.use_singularity:
         extra.append("--use-singularity")
     if a.dry_run:
         extra.append("-n")
     extra += a.extra
-    return runner.run(Path(a.workdir), Path(a.config) if a.config else None, extra)
+    return runner.run(Path(a.workdir), Path(a.config) if a.config else None, extra,
+                      executor=a.executor, jobs=a.jobs, partition=a.partition,
+                      cores=a.cores)
 
 
 def cmd_setup(a) -> int:
-    extra = ["--use-conda", "--cores", str(a.cores)] + a.extra
-    return runner.setup_databases(Path(a.workdir), Path(a.config) if a.config else None, extra)
+    extra = ["--use-conda"] + a.extra
+    return runner.setup_databases(Path(a.workdir), Path(a.config) if a.config else None, extra,
+                                  cores=a.cores)
 
 
 def cmd_config(a) -> int:
@@ -111,6 +114,10 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("-w", "--workdir", default=".", help="run directory containing config.yaml")
     pr.add_argument("-c", "--config", help="config.yaml (default: <workdir>/config.yaml)")
     pr.add_argument("--cores", type=int, default=1)
+    pr.add_argument("--executor", choices=["local", "slurm"], default="local",
+                    help="local: run on this machine with --cores; slurm: dispatch each rule as a SLURM job")
+    pr.add_argument("--jobs", type=int, default=100, help="slurm mode: max concurrent jobs")
+    pr.add_argument("--partition", default="batch", help="slurm mode: partition for submitted jobs")
     pr.add_argument("--use-singularity", action="store_true", help="also use Singularity/Apptainer containers (PhaStyle)")
     pr.add_argument("-n", "--dry-run", action="store_true")
     pr.add_argument("extra", nargs=argparse.REMAINDER, help="extra args forwarded to snakemake")

@@ -72,6 +72,9 @@ rule report:
         amg_votu=f"{OUT}/opt_amg/amg_summary.tsv",
         amg_genes=f"{OUT}/opt_amg/amg_genes.tsv",
         amg_sample=f"{OUT}/opt_amg/amg_per_sample.tsv",
+    resources:
+        mem_mb=8000,
+        runtime=120,
     conda:
         env("report")
     shell:

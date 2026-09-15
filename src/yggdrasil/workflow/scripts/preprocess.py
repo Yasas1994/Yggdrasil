@@ -3,10 +3,14 @@
 
 Runs in the yggdrasil env (needs only biopython). Produces the master contig
 FASTA plus the contig->sample and contig->length maps used downstream.
+With --out-per-sample, also writes one renamed, length-filtered FASTA per
+sample (empty file when the source genome is empty/missing) so per-sample
+rules (CheckV) have a static, parse-time-known input for every sample.
 """
 import argparse
 import csv
 import hashlib
+import os
 import sys
 
 from Bio import SeqIO
@@ -24,7 +28,13 @@ def main():
     ap.add_argument("--out-fna", required=True)
     ap.add_argument("--out-map", required=True)
     ap.add_argument("--out-lengths", required=True)
+    ap.add_argument("--out-per-sample", help="also write <dir>/{sample}.fna per sample")
     a = ap.parse_args()
+
+    per_sample = None
+    if a.out_per_sample:
+        os.makedirs(a.out_per_sample, exist_ok=True)
+        per_sample = {}
 
     rows = list(csv.DictReader(open(a.samples, newline=""), delimiter="\t"))
     seen = set()
@@ -34,16 +44,20 @@ def main():
         ln.write("contig\tlength\n")
         for r in rows:
             s, g = r["sample"], r.get("genome", "")
-            if not g:
-                continue
-            try:
-                recs = list(SeqIO.parse(g, "fasta"))
-            except Exception as e:
-                print(f"[preprocess] WARN: cannot read {g}: {e}", file=sys.stderr)
-                continue
-            if not recs:
-                print(f"[preprocess] WARN: empty {g}", file=sys.stderr)
-                continue
+            ps = None
+            if per_sample is not None:
+                # open for every sample, even without readable records, so the
+                # file always exists (per-sample rules expect one file per sample)
+                ps = open(os.path.join(a.out_per_sample, f"{s}.fna"), "w")
+                per_sample[s] = ps
+            recs = []
+            if g:
+                try:
+                    recs = list(SeqIO.parse(g, "fasta"))
+                except Exception as e:
+                    print(f"[preprocess] WARN: cannot read {g}: {e}", file=sys.stderr)
+                if g and not recs:
+                    print(f"[preprocess] WARN: empty {g}", file=sys.stderr)
             for rec in recs:
                 n_in += 1
                 seq = str(rec.seq).upper()
@@ -58,9 +72,14 @@ def main():
                     seen.add(h)
                 cid = f"{s}__{rec.id}"
                 fa.write(f">{cid}\n{wrap(seq)}\n")
+                if ps is not None:
+                    ps.write(f">{cid}\n{wrap(seq)}\n")
                 mp.write(f"{cid}\t{s}\n")
                 ln.write(f"{cid}\t{len(seq)}\n")
                 n_out += 1
+    if per_sample is not None:
+        for ps in per_sample.values():
+            ps.close()
     print(f"[preprocess] in={n_in} out={n_out} short={n_short} dup={n_dup}", file=sys.stderr)
 
 
