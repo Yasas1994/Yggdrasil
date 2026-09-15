@@ -31,10 +31,9 @@ def main():
     ap.add_argument("--out-per-sample", help="also write <dir>/{sample}.fna per sample")
     a = ap.parse_args()
 
-    per_sample = None
-    if a.out_per_sample:
+    write_ps = bool(a.out_per_sample)
+    if write_ps:
         os.makedirs(a.out_per_sample, exist_ok=True)
-        per_sample = {}
 
     rows = list(csv.DictReader(open(a.samples, newline=""), delimiter="\t"))
     seen = set()
@@ -45,11 +44,12 @@ def main():
         for r in rows:
             s, g = r["sample"], r.get("genome", "")
             ps = None
-            if per_sample is not None:
+            if write_ps:
                 # open for every sample, even without readable records, so the
-                # file always exists (per-sample rules expect one file per sample)
+                # file always exists (per-sample rules expect one file per sample);
+                # open/write/close inside the loop so thousands of samples never
+                # exhaust the open-file limit
                 ps = open(os.path.join(a.out_per_sample, f"{s}.fna"), "w")
-                per_sample[s] = ps
             recs = []
             if g:
                 try:
@@ -77,9 +77,8 @@ def main():
                 mp.write(f"{cid}\t{s}\n")
                 ln.write(f"{cid}\t{len(seq)}\n")
                 n_out += 1
-    if per_sample is not None:
-        for ps in per_sample.values():
-            ps.close()
+            if ps is not None:
+                ps.close()
     print(f"[preprocess] in={n_in} out={n_out} short={n_short} dup={n_dup}", file=sys.stderr)
 
 
