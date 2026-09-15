@@ -46,8 +46,11 @@ def run(workdir: Path, user_config: Path | None, extra: list[str],
     if user_config is not None:
         cmd += [str(user_config.resolve())]
     if executor == "slurm":
+        # Default runtime: many clusters reject jobs without a time limit;
+        # rules that declare resources.runtime override this.
         cmd += ["--executor", "slurm", "--jobs", str(jobs),
-                "--default-resources", f"slurm_partition={partition}"]
+                "--default-resources", f"slurm_partition={partition}",
+                "runtime=1440"]
     elif cores is not None:
         cmd += ["--cores", str(cores)]
     cmd += extra
