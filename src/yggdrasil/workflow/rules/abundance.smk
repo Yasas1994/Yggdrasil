@@ -28,7 +28,9 @@ rule coverm_merge:
     output:
         f"{OUT}/06_abundance/coverm.tsv",
     run:
-        # `pd` is imported in the master Snakefile namespace.
+        # Runs inside the rule job (compute node env has pandas); the driver
+        # process itself stays pandas-free so it can live on the login node.
+        import pandas as pd
         merged = None
         for s in samples_with_reads():
             df = pd.read_csv(f"{OUT}/06_abundance/per_sample/{s}.tsv", sep="\t")

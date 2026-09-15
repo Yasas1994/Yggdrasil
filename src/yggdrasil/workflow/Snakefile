@@ -2,8 +2,8 @@
 # Bundled inside the `yggdrasil` package; invoked via `yggdrasil run`.
 # Included rule files share this namespace, so helpers below are visible everywhere.
 
+import csv
 from pathlib import Path
-import pandas as pd
 
 WF_DIR = Path(workflow.snakefile).resolve().parent
 OUT = config["outdir"]
@@ -20,22 +20,29 @@ def scr(name: str) -> str:
 
 
 def load_samples():
-    return pd.read_csv(config["samples"], sep="\t", dtype=str).set_index("sample", drop=False)
+    # stdlib csv (not pandas) so the Snakemake driver stays importable on
+    # hosts whose CPU lacks AVX (e.g. the zeus login node), where the
+    # recommended SLURM-executor setup runs the driver on the login node
+    rows = {}
+    with open(config["samples"], newline="") as fh:
+        for r in csv.DictReader(fh, delimiter="\t"):
+            rows[r["sample"]] = r
+    return rows
 
 
 SAMPLES = load_samples()
 
 
 def sample_list():
-    return SAMPLES.index.tolist()
+    return list(SAMPLES)
 
 
 def genome_of(s):
-    return SAMPLES.loc[s, "genome"]
+    return SAMPLES[s]["genome"]
 
 
 def reads_of(s, mate):
-    v = SAMPLES.loc[s, f"r{mate}"]
+    v = SAMPLES[s].get(f"r{mate}")
     return v if isinstance(v, str) and v and v.lower() != "nan" else None
 
 
