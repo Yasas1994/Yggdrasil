@@ -19,6 +19,7 @@ yggdrasil init -g phage_genomes/ -r QC/reads/ -o run1   # scaffold run dir
 yggdrasil setup-databases -w run1 --cores 8             # one-time DB download
 yggdrasil run -w run1 --cores 32 --use-singularity      # full run (local)
 yggdrasil run -w run1 --executor slurm --jobs 200 --partition batch --use-singularity  # SLURM cluster
+yggdrasil run -w run1 --executor slurm-jobstep --jobs 20 --use-singularity  # inside an existing SLURM allocation
 yggdrasil run -w run1 --cores 32 -n                     # dry-run: validate the DAG
 yggdrasil config                                          # print default config
 # extra snakemake args after `--`: yggdrasil run -w run1 -- --rerun-incomplete

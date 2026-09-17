@@ -114,8 +114,10 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("-w", "--workdir", default=".", help="run directory containing config.yaml")
     pr.add_argument("-c", "--config", help="config.yaml (default: <workdir>/config.yaml)")
     pr.add_argument("--cores", type=int, default=1)
-    pr.add_argument("--executor", choices=["local", "slurm"], default="local",
-                    help="local: run on this machine with --cores; slurm: dispatch each rule as a SLURM job")
+    pr.add_argument("--executor", choices=["local", "slurm", "slurm-jobstep"], default="local",
+                    help="local: run on this machine with --cores; slurm: dispatch each rule as "
+                         "a SLURM job; slurm-jobstep: run rules as job steps (srun) inside the "
+                         "current SLURM allocation (no new job submissions)")
     pr.add_argument("--jobs", type=int, default=100, help="slurm mode: max concurrent jobs")
     pr.add_argument("--partition", default="batch", help="slurm mode: partition for submitted jobs")
     pr.add_argument("--use-singularity", action="store_true", help="also use Singularity/Apptainer containers (PhaStyle)")

@@ -31,7 +31,9 @@ def run(workdir: Path, user_config: Path | None, extra: list[str],
     given, <workdir>/config.yaml is used when present.
 
     executor=slurm dispatches each rule as its own SLURM job (needs
-    snakemake-executor-plugin-slurm); executor=local runs locally with --cores.
+    snakemake-executor-plugin-slurm); executor=slurm-jobstep runs rules as
+    job steps inside the current SLURM allocation; executor=local runs
+    locally with --cores.
     """
     workdir = workdir.resolve()
     if user_config is None:
@@ -51,6 +53,11 @@ def run(workdir: Path, user_config: Path | None, extra: list[str],
         cmd += ["--executor", "slurm", "--jobs", str(jobs),
                 "--default-resources", f"slurm_partition={partition}",
                 "runtime=1440"]
+    elif executor == "slurm-jobstep":
+        # Rules run as job steps (srun) inside the CURRENT SLURM allocation;
+        # resources come from the allocation, so no partition/defaults here.
+        # Needs snakemake-executor-plugin-slurm-jobstep.
+        cmd += ["--executor", "slurm-jobstep", "--jobs", str(jobs)]
     elif cores is not None:
         cmd += ["--cores", str(cores)]
     cmd += extra

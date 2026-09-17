@@ -44,6 +44,8 @@ everything in one local process:
 
 ```bash
 yggdrasil run -w run1 --executor slurm --jobs 200 --partition batch --use-singularity
+# or, inside an existing SLURM allocation (sbatch --nodes=N --exclusive):
+yggdrasil run -w run1 --executor slurm-jobstep --jobs 20 --use-singularity
 ```
 
 `--jobs` caps concurrent SLURM jobs, `--partition` sets the partition

@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
   "snakemake>=8",
   "snakemake-executor-plugin-slurm",
+  "snakemake-executor-plugin-slurm-jobstep",
   "pandas>=2",
   "pyyaml>=6",
   "biopython>=1.81",
